@@ -39,7 +39,7 @@ Maestro currently supports a concise set of core orchestration features:
 
 ### Installation
 
-To install the **core library** from TestPyPI:
+To install the **core library** from PyPI:
 
 ```bash
   pip install python-maestro
