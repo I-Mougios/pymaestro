@@ -97,7 +97,7 @@ jobs:
           path: dist/
 
   pypi_publish:
-    name: Upload release to TestPyPI
+    name: Upload release to PyPI
     needs: [setup_and_build, details]
     runs-on: ubuntu-latest
     environment:
