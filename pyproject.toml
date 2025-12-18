@@ -1,0 +1,75 @@
+[tool.poetry]
+name = "python-maestro"
+version = "0.1.0"
+description = "A lightweight orchestrator for managing Python tasks"
+authors = ["Ioannis Mougios <i.mougios.tech@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [
+    { include = "pymaestro", from = "src" }
+]
+
+homepage = "https://github.com/I-Mougios/pymaestro"
+repository = "https://github.com/I-Mougios/pymaestro"
+keywords = ["orchestration", "task-scheduler", "python", "CLI"]
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+wrapt = "^2.0.1"
+click = { version = "^8.3.0", optional = true }
+
+
+[tool.poetry.extras]
+cli = ["click"]
+
+[tool.poetry.group.dev.dependencies]
+notebook = "^7.4.5"
+mypy = "^1.18.2"
+pytest = "^8.4.2"
+ruff = "^0.13.1"
+commitizen = {version = "^4.9.1", markers = "python_version < '4.0'"}
+pre-commit = "^4.3.0"
+icecream = "^2.1.8"
+pillow = "^11.3.0"
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow"
+]
+addopts = "-m 'not slow'"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+warn_unused_ignores = true
+show_error_codes = true
+disallow_untyped_defs = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+exclude = [
+    ".git",
+    ".venv",
+    "migrations",
+    "__pycache__",
+    "*.md",
+    "*.ini",
+    "*.toml",
+    ".*sh",
+]
+
+[tool.ruff.lint]
+ignore = ["C408"]
+select = ["B", "B9", "C", "E", "F", "I", "W", "T"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+maestro = "pymaestro.cli:entrypoint"
