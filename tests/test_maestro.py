@@ -132,8 +132,10 @@ def test_dependency_resolution_when_dependencies_come_after_the_actual_job():
     def four():
         return 4
 
-    results = maestro.execute()
-    assert results[0] == 9
+    with pytest.warns(RuntimeWarning, match=".* was called but the job has already been completed."):
+        results = maestro.execute()
+        assert results[0] == 9
+
     maestro.registry.clear()
 
 
