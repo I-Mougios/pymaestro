@@ -3,7 +3,7 @@ from itertools import groupby
 from types import MappingProxyType
 from typing import Any, Iterable, Iterator, Optional
 
-from .jobs import Job, JobPool, deserialize
+from .jobs import Job, JobPool
 
 
 class JobRegistry:
@@ -171,8 +171,3 @@ class JobRegistry:
         j = self.index(idx_or_name_j) if isinstance(idx_or_name_j, str) else idx_or_name_j
         self._jobs[i], self._jobs[j] = self._jobs[j], self._jobs[i]
         self.reset_cached()
-
-
-@deserialize.register("JobRegistry")
-def deserialize_job_registry(obj: dict[str, Any]) -> JobRegistry:
-    return JobRegistry(obj.get("value", []))

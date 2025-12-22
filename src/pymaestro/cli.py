@@ -12,7 +12,7 @@ def main():  # noqa: C901
         import click
     except ImportError:
         raise RuntimeError(
-            "Click is required for the CLI. Install Maestro with CLI support:\n\n    pip install pymaestro[cli]\n"
+            "Click is required for the CLI. Install Maestro with CLI support:\n\n    pip install python-maestro[cli]\n"
         ) from None
 
     @click.group()

@@ -5,27 +5,12 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 from .job_registry import JobRegistry
-from .jobs import Job, JobPool, create_job, deserialize, serialize
+from .jobs import Job, JobPool, create_job
+from .utils import DependsOn
+from .utils.deserialize import deserialize
+from .utils.serialize import serialize
 
-__all__ = ["Maestro", "DependsOn"]
-
-
-class DependsOn:
-    def __init__(self, name):
-        self.name = name
-
-    def __repr__(self):
-        return f"Depends(name={self.name})"
-
-
-@serialize.register(DependsOn)
-def serialize_depends_on(dep: DependsOn):
-    return {"type": "DependsOn", "value": dep.name}
-
-
-@deserialize.register("DependsOn")
-def deserialize_depends_on(obj: dict):
-    return DependsOn(obj["value"])
+__all__ = ["Maestro"]
 
 
 class Maestro:

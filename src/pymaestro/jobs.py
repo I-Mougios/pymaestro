@@ -15,18 +15,14 @@ import asyncio
 import concurrent.futures
 import importlib
 import importlib.util
-import json
 import runpy
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
-from datetime import date, datetime
-from functools import singledispatch
 from inspect import iscoroutinefunction
 from pathlib import Path
-from types import FunctionType
 from typing import Any, Callable, Iterator
 
-from .utils import Dispatcher, is_completed
+from .utils.dispatcher import Dispatcher
+from .utils.wrappers import inject_dependencies, is_completed
 
 __all__ = [
     "Job",
@@ -35,8 +31,6 @@ __all__ = [
     "AsyncCallableJob",
     "ScriptJob",
     "create_job",
-    "serialize",
-    "deserialize",
     "SUPPORTED_JOB_TYPES",
 ]
 
@@ -58,7 +52,7 @@ class Job(ABC):
 
     def __init_subclass__(cls):
         execute = cls.execute
-        cls.execute = is_completed(execute)
+        cls.execute = is_completed(inject_dependencies(execute))
 
     @abstractmethod
     def execute(self) -> Any:
@@ -419,104 +413,3 @@ def create_script_job(
     job_type: str, name: str, executable: str, parallel_group: str | None = None, **extras
 ) -> ScriptJob:
     return ScriptJob(name=name, executable=executable, parallel_group=parallel_group)
-
-
-# ---------------------------------------------------------------------------
-#  Serialization — singledispatch-based JSON encoding
-# ---------------------------------------------------------------------------
-
-
-@singledispatch
-def serialize(obj: Any) -> Any:
-    return json.dumps(obj)
-
-
-@serialize.register(Iterable)
-def serialize_iterable(obj: Iterable[Any]) -> dict[str, Any]:
-    return {"type": obj.__class__.__name__, "value": list(obj)}
-
-
-@serialize.register
-def serialize_date(obj: date) -> dict[str, str]:
-    return {"type": "date", "value": obj.isoformat()}
-
-
-@serialize.register(datetime)
-def serialize_datetime(value: datetime) -> dict[str, Any]:
-    return {"type": "datetime", "value": value.isoformat()}
-
-
-@serialize.register(JobPool)
-def serialize_job_pool(obj: JobPool) -> dict[str, Any]:
-    return {"type": "job_pool", "jobs": list(obj)}
-
-
-@serialize.register(Path)
-def serialize_path(obj: Path) -> str:
-    return str(obj)
-
-
-@serialize.register(FunctionType)
-def serialize_function(obj: FunctionType) -> dict[str, str]:
-    return {"type": "function", "value": f"{obj.__module__}.{obj.__qualname__}"}
-
-
-@serialize.register(ScriptJob)
-def serialize_script_job(obj: ScriptJob) -> dict[str, Any]:
-    return {"type": "script", "name": obj.name, "executable": obj.executable, "parallel_group": obj.parallel_group}
-
-
-@serialize.register(CallableJob)
-def serialize_callable_job(obj: CallableJob) -> dict[str, Any]:
-    return {
-        "type": "async_callable" if iscoroutinefunction(obj.executable) else "callable",
-        "name": obj.name,
-        "executable": obj.executable,  # by default handle case where executable is function
-        "parallel_group": obj.parallel_group,
-        "args": obj.args,
-        "kwargs": obj.kwargs,
-    }
-
-
-# ---------------------------------------------------------------------------
-#  Deserialization — singledispatch-like factory
-# ---------------------------------------------------------------------------
-
-
-def get_type(obj: dict[str, Any]) -> Any:
-    return obj.get("type", object())
-
-
-@Dispatcher(key_generator=get_type)
-def deserialize(obj: Any) -> Any:
-    return obj
-
-
-@deserialize.register("datetime")
-def deserialize_datetime(obj: dict[str, str]) -> datetime:
-    return datetime.fromisoformat(obj["value"])
-
-
-@deserialize.register("date")
-def deserialize_date(obj: dict[str, str]) -> date:
-    return date.fromisoformat(obj["value"])
-
-
-@deserialize.register("function")
-def deserialize_function(obj: dict[str, str]) -> FunctionType:
-    import_path, function_name = obj["value"].rsplit(".", maxsplit=1)
-    module = importlib.import_module(import_path)
-    return getattr(module, function_name)
-
-
-@deserialize.register("callable")
-@deserialize.register("async_callable")
-@deserialize.register("script")
-def deserialize_callable_job(obj: dict[str, str]) -> ScriptJob | CallableJob | AsyncCallableJob:
-    _type = obj.pop("type")  # it must be passed as positional argument to the create_job factory function
-    return create_job(_type, **obj)
-
-
-@deserialize.register("job_pool")
-def deserialize_job_pool(obj: dict[str, Any]) -> JobPool:
-    return JobPool(*obj.get("jobs", []))

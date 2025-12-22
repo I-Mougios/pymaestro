@@ -1,13 +1,10 @@
-# src/pymaestro/utils.py
+# src/pymaestro/utils/dispatcher.py
 from __future__ import annotations
 
-import warnings
 from types import MappingProxyType, MethodType
 from typing import Any, Callable, Dict, List, Optional, Set, TypeVar, Union
 
-import wrapt
-
-__all__ = ["Dispatcher", "is_completed"]
+__all__ = ["Dispatcher"]
 
 T = TypeVar("T")
 
@@ -152,20 +149,3 @@ class Dispatcher:
         self.__doc__ = fallback.__doc__
         self.__name__ = fallback.__name__
         return self
-
-
-@wrapt.decorator
-def is_completed(wrapped, instance, args, kwargs):
-    if hasattr(instance, "is_completed") and instance.is_completed:
-        warnings.warn(
-            f"'{instance.name}' was called but the job has already been completed.",
-            category=RuntimeWarning,
-            stacklevel=4,
-        )
-        return instance.result
-
-    output = wrapped(*args, **kwargs)
-    instance.is_completed = True
-    instance.result = output
-
-    return output
