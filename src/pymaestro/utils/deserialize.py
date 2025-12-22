@@ -7,7 +7,7 @@ from typing import Any
 from ..job_registry import JobRegistry
 from ..jobs import Job, JobPool, create_job
 from .dispatcher import Dispatcher
-from .wrappers import DependsOn
+from .wrappers import DependsOn, Resource
 
 __all__ = ["deserialize"]
 
@@ -63,3 +63,8 @@ def deserialize_job_registry(obj: dict[str, Any]) -> JobRegistry:
 @deserialize.register("DependsOn")
 def deserialize_depends_on(obj: dict):
     return DependsOn(obj["value"])
+
+
+@deserialize.register("Resource")
+def deserialize_resource(obj: dict):
+    return Resource(obj["generator_fn"], obj["generator_args"], obj["generator_kwargs"])

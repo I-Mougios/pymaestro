@@ -9,7 +9,7 @@ from types import FunctionType
 from typing import Any
 
 from ..jobs import CallableJob, JobPool, ScriptJob
-from .wrappers import DependsOn
+from .wrappers import DependsOn, Resource
 
 __all__ = ["serialize"]
 # ---------------------------------------------------------------------------
@@ -72,3 +72,13 @@ def serialize_callable_job(obj: CallableJob) -> dict[str, Any]:
 @serialize.register(DependsOn)
 def serialize_depends_on(dep: DependsOn):
     return {"type": "DependsOn", "value": dep.name}
+
+
+@serialize.register(Resource)
+def serialize_resource(dep: Resource):
+    return {
+        "type": "Resource",
+        "generator_fn": dep.generator_fn,
+        "generator_args": dep.generator_args,
+        "generator_kwargs": dep.generator_kwargs,
+    }
