@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.0] – 2025-12-22
+## [0.2.0] – 2025-12-30
 
 ### Added
 - `inject_dependencies` decorator for improved dependency injection in jobs.  

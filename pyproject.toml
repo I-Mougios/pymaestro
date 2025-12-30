@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-maestro"
-version = "0.1.0"
+version = "0.2.0"
 description = "A lightweight orchestrator for managing Python tasks"
 authors = ["Ioannis Mougios <i.mougios.tech@gmail.com>"]
 license = "MIT"
